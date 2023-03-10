@@ -1,36 +1,50 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
-AS=clang
-ASFLAGS=-target i386
+AS=as
+ASFLAGS=
+LD=ld
+LDFLAGS=
 
 SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin
 
-SRCS=$(SRC_DIR)/test.s
+BOOTLOADER_SRCS=$(SRC_DIR)/bootloader.s
 
-OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(SRCS))
+BOOTLOADER_OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(BOOTLOADER_SRCS))
 
-.PHONY: all test clean
+BOOTLOADER_BIN=$(BIN_DIR)/bootloader.bin
+ISO=boon.iso
 
-all: test
-	@echo Done.
+.PHONY: all dirs bootloader iso clean
 
+all: dirs iso
 
-test: $(OBJ_DIR) $(OBJS)
-
-
-$(OBJS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
-	@echo Assembling $<...
-	@$(AS) $(ASFLAGS) -o $@ -c $<
-
-
-$(OBJ_DIR):
-	@echo Creating directory $@...
-	@mkdir -p $@
-
+dirs:
+	@echo Creating output directories...
+	@mkdir -p $(OBJ_DIR)
+	@mkdir -p $(BIN_DIR)
 
 clean:
-	@rm -f $(OBJS)
 	@rm -rf $(OBJ_DIR)
+	@rm -rf $(BIN_DIR)
+	@rm -f $(ISO)
+
+$(BOOTLOADER_OBJS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
+	@echo Assembling $<...
+	@$(AS) -o $@ -c $< $(ASFLAGS)
+
+$(BOOTLOADER_BIN): $(BOOTLOADER_OBJS)
+	@echo Linking $@...
+	@$(LD) -o $@ $^ -Ttext 0x7C00 --oformat=binary
+
+bootloader: $(BOOTLOADER_BIN)
+	@echo Built $@.
+
+$(ISO): $(BOOTLOADER_BIN)
+	@echo Generating $@...
+	@dd if=$(BOOTLOADER_BIN) of=$(ISO) conv=notrunc bs=512 seek=0 count=1
+
+iso: $(ISO)
+	@echo Built $@.
