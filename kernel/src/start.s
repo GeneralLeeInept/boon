@@ -1,4 +1,3 @@
-    .code32
     .section .text.start
 
     .global _start

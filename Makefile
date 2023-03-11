@@ -14,7 +14,9 @@ $(SUBDIRS):
 
 $(ISO): $(SUBDIRS)
 	@echo Generating $@...
+	@dd if=/dev/zero of=$(ISO) bs=512 seek=0 count=2
 	@dd if=$(BOOTLOADER_BIN) of=$(ISO) conv=notrunc bs=512 seek=0 count=1
+	@dd if=bootloader/bin/sector2.bin of=$(ISO) conv=notrunc bs=512 seek=1 count=1
 
 iso: $(ISO)
 	@echo Built $(ISO).

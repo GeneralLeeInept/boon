@@ -22,7 +22,8 @@ _start:
 	int $0x13
 	jc disk_error
 
-	jmp $0x1000,$0x0
+	/* Jump to start of kernel */
+	ljmp $0x1000,$0x0000
 
 stop:
 	hlt
@@ -53,16 +54,24 @@ banner_msg:
 loading_msg:
 	.string "Loading BoonOS kernel...\r\n"
 
+unpacking_kernel_msg:
+	.string "Unpacking kernel...\r\n"
+
 disk_error_msg:
 	.string "Disk error.\r\n"
+
+sector2_entry:
+	.word 0x1000
+	.word 0x0000
 
 disk_packet:
 	.byte 0x10			/* Size of packet */
 	.byte 0x00			/* reserved (0) */
 	.word 0x0001		/* Number of blocks to transfer */
-	.word 0x1000		/* Transfer buffer */
-	.quad 0x00000000	/* (EDD-3.0, optional) 64-bit flat address of transfer buffer;
-						   used if DWORD at 04h is FFFFh:FFFFh */
+	.word 0x0000		/* offset */
+	.word 0x1000		/* segment */
+	.word 1				/* low 32-bits of LBA to load */
+	.word 0				/* high 32-bits of LBA to load */
 
 	/* MBR BOOT SIGNATURE */
 	.fill 510-(.-_start)
