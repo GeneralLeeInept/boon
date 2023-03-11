@@ -1,6 +1,6 @@
 ISO=boon.iso
 
-SUBDIRS := bootloader
+SUBDIRS := bootloader kernel
 
 BOOTLOADER_BIN = bootloader/bin/bootloader.bin
 
