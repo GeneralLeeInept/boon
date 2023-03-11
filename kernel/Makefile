@@ -3,12 +3,12 @@ override MAKEFLAGS += -rR
 
 KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
-AS=as
-ASFLAGS=
+AS=gcc
+ASFLAGS=-m32
 CC=gcc
-CFLAGS=-fno-asynchronous-unwind-tables
+CFLAGS=-m32 -fno-asynchronous-unwind-tables -fno-pie
 LD=ld
-LDFLAGS=
+LDFLAGS=-melf_i386
 
 SRC_DIR=src
 OBJ_DIR=obj
@@ -24,10 +24,11 @@ S_SRCS=\
 C_OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(C_SRCS))
 S_OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(S_SRCS))
 
-.PHONY: all clean kernel
+.PHONY: all clean kernel run
 
-all: $(KERNEL_BIN)
-	@echo Built $^.
+all: kernel
+
+run: kernel
 
 clean:
 	@rm -rf $(OBJ_DIR)
@@ -46,6 +47,7 @@ $(S_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.s
 $(KERNEL_BIN): $(S_OBJS) $(C_OBJS)
 	@echo Linking $<...
 	@mkdir -p $(@D)
-	@$(LD) -o $@ $^ -Tlink.ld
+	@$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld
 
 kernel: $(KERNEL_BIN)
+	@echo Built $(KERNEL_BIN).

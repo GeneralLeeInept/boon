@@ -1,4 +1,4 @@
-void kprint(const char*)
+void kprint(const char* msg)
 {
 
 }

@@ -12,11 +12,14 @@ clean: $(SUBDIRS)
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
-$(ISO): $(BOOTLOADER_BIN)
+$(ISO): $(SUBDIRS)
 	@echo Generating $@...
 	@dd if=$(BOOTLOADER_BIN) of=$(ISO) conv=notrunc bs=512 seek=0 count=1
 
 iso: $(ISO)
 	@echo Built $(ISO).
 
-.PHONY: all clean $(SUBDIRS)
+run: $(ISO)
+	@qemu-system-i386 -drive format=raw,file=$(ISO)
+
+.PHONY: all clean run $(SUBDIRS)

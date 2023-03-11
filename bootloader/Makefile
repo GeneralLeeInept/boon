@@ -3,7 +3,7 @@ override MAKEFLAGS += -rR
 
 BOOTLOADER_BIN=$(BIN_DIR)/bootloader.bin
 
-AS=as
+AS=gcc
 ASFLAGS=
 LD=ld
 LDFLAGS=
@@ -16,9 +16,12 @@ SRCS=$(SRC_DIR)/bootloader.s
 
 OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(SRCS))
 
-.PHONY: all clean
+.PHONY: all clean run bootloader
 
-all: $(BOOTLOADER_BIN)
+all: bootloader
+run: bootloader
+
+bootloader: $(BOOTLOADER_BIN)
 	@echo Built $(BOOTLOADER_BIN).
 
 clean:
@@ -34,6 +37,3 @@ $(BOOTLOADER_BIN): $(OBJS)
 	@echo Linking $@...
 	@mkdir -p $(@D)
 	@$(LD) -o $@ $^ -Ttext 0x7C00 --oformat=binary
-
-bootloader: $(BOOTLOADER_BIN)
-	@echo Built $@.
