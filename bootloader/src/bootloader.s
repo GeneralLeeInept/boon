@@ -6,6 +6,11 @@
 	.global _start
 
 _start:
+	/* Set up registers */
+	mov %cs, %ax
+	mov %ax, %ds
+	cld
+
 	/* Set mode 3 (80 x 25 text mode) to clear screen */
 	mov $3, %ax
 	int $0x10
@@ -60,10 +65,6 @@ unpacking_kernel_msg:
 disk_error_msg:
 	.string "Disk error.\r\n"
 
-sector2_entry:
-	.word 0x1000
-	.word 0x0000
-
 disk_packet:
 	.byte 0x10			/* Size of packet */
 	.byte 0x00			/* reserved (0) */
@@ -72,7 +73,3 @@ disk_packet:
 	.word 0x1000		/* segment */
 	.word 1				/* low 32-bits of LBA to load */
 	.word 0				/* high 32-bits of LBA to load */
-
-	/* MBR BOOT SIGNATURE */
-	.fill 510-(.-_start)
-	.word 0xAA55

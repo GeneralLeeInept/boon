@@ -43,7 +43,7 @@ $(OBJS): $(OBJ_DIR)/%.o: $(SRC_DIR)/%.s
 $(BOOTLOADER_BIN): $(OBJS)
 	@echo Linking $@...
 	@mkdir -p $(@D)
-	@$(LD) -o $@ $^ $(LDFLAGS) -Ttext 0x7C00 --oformat=binary
+	@$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld --oformat=binary
 
 $(BIN_DIR)/sector2.bin: $(S2_OBJS)
 	@echo Linking $@...
