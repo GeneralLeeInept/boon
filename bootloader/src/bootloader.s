@@ -6,10 +6,13 @@
 	.global _start
 
 _start:
-	/* Set up registers */
 	mov %cs, %ax
 	mov %ax, %ds
+	mov %ax, %ss
+	movw $0x7c00, %sp
 	cld
+
+	xor %ax,%ax
 
 	/* Set mode 3 (80 x 25 text mode) to clear screen */
 	mov $3, %ax
@@ -18,14 +21,63 @@ _start:
 	movw $banner_msg, %si
 	call print
 
+	/* Enable unreal mode */
+	mov $unreal_mode_msg, %si
+	call print
+
+	cli
+	push %ds
+	lgdt gdtinfo
+
+	mov %cr0, %eax
+	or $1, %al
+	mov %eax, %cr0
+	ljmp $0x8,$pmode
+
+.code32
+pmode:
+	mov $0x10, %bx
+	mov %bx, %ds
+	and $0xfe, %al
+	mov %eax, %cr0
+	ljmp $0x0,$unreal
+
+.code16
+unreal:
+	pop %ds
+	sti
+
+	mov $0x2f01, %bx
+	mov $0xb8000, %eax
+	mov %bx, (%eax)
+
 	movw $loading_msg, %si
 	call print
+
+	jmp stop
+	
+	/* Loading kernel to 1M, setup unreal mode then load & copy sector by sector */
+	movw $1, sectors
+	/*mov $41, %cx*/
 
 	/* Load kernel to 0x10000 */
 	movb $0x42, %ah
 	movw $disk_packet, %si
 	int $0x13
 	jc disk_error
+
+	/*
+	The bootloader has loaded us into 32-bit protected mode on a x86
+	machine. Interrupts are disabled. Paging is disabled. The processor
+	state is as defined in the multiboot standard. The kernel has full
+	control of the CPU. The kernel can only make use of hardware features
+	and any code it provides as part of itself. There's no printf
+	function, unless the kernel provides its own <stdio.h> header and a
+	printf implementation. There are no security restrictions, no
+	safeguards, no debugging mechanisms, only what the kernel provides
+	itself. It has absolute and complete power over the
+	machine.
+	*/
 
 	/* Jump to start of kernel */
 	ljmp $0x1000,$0x0000
@@ -56,6 +108,9 @@ disk_error:
 banner_msg:
 	.string "BoonOS Boot Loader v0.0.1\r\n"
 
+unreal_mode_msg:
+	.string "Entering unreal mode...\r\n"
+
 loading_msg:
 	.string "Loading BoonOS kernel...\r\n"
 
@@ -65,10 +120,25 @@ unpacking_kernel_msg:
 disk_error_msg:
 	.string "Disk error.\r\n"
 
+.align 16
+gdtinfo:
+	.word gdt_end - gdt - 1
+	.long gdt
+
+.align 16
+gdt:
+	.quad 0
+codedesc:
+	.byte 0xff, 0xff, 0, 0, 0, 0b10011010, 0b00000000, 0
+flatdesc:
+	.byte 0xff, 0xff, 0, 0, 0, 0b10010010, 0b11001111, 0
+gdt_end:
+
 disk_packet:
 	.byte 0x10			/* Size of packet */
 	.byte 0x00			/* reserved (0) */
-	.word 0x0001		/* Number of blocks to transfer */
+sectors:
+	.word 0x0000		/* Number of blocks to transfer */
 	.word 0x0000		/* offset */
 	.word 0x1000		/* segment */
 	.word 1				/* low 32-bits of LBA to load */

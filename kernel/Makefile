@@ -3,12 +3,13 @@ override MAKEFLAGS += -rR
 
 KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
-AS=gcc
-ASFLAGS=-m32
-CC=gcc
-CFLAGS=-m32 -fno-asynchronous-unwind-tables -fno-pie
-LD=ld
-LDFLAGS=-melf_i386
+TARGET?=i686-elf
+AS=$(TARGET)-as
+ASFLAGS=
+CC=$(TARGET)-gcc
+CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra
+LD=$(TARGET)-gcc
+LDFLAGS=-ffreestanding -O2 -nostdlib -lgcc
 
 SRC_DIR=src
 OBJ_DIR=obj

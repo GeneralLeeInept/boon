@@ -2,23 +2,24 @@ OUTPUT_FORMAT("binary")
 ENTRY(_start)
 SECTIONS
 {
-    . = 0x10000;
+    . = 1M;
 
     .text.start : { obj/start.o }
 
-    .text : ALIGN(CONSTANT(MAXPAGESIZE)) {
+    .text BLOCK(4K) : ALIGN(4K) {
         *(.text)
     }
 
-    .rodata : ALIGN(CONSTANT(MAXPAGESIZE)) {
+    .rodata BLOCK(4K) : ALIGN(4K) {
         *(.rodata)
     }
 
-    .data : ALIGN(CONSTANT(MAXPAGESIZE)) {
+    .data BLOCK(4K) : ALIGN(4K) {
         *(.data)
     }
 
-    .bss : ALIGN(CONSTANT(MAXPAGESIZE)) {
+    .bss BLOCK(4K) : ALIGN(4K) {
+        *(COMMON)
         *(.bss)
     }
 }

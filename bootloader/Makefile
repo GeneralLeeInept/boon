@@ -3,9 +3,10 @@ override MAKEFLAGS += -rR
 
 BOOTLOADER_BIN=$(BIN_DIR)/bootloader.bin
 
-AS=gcc
+TARGET?=i686-elf
+AS=$(TARGET)-gcc
 ASFLAGS=-m32
-LD=ld
+LD=$(TARGET)-ld
 LDFLAGS=-melf_i386
 
 SRC_DIR=src
