@@ -52,12 +52,14 @@ unreal:
 
 	/* Loading kernel to 1M, load & copy sector by sector */
 	/*mov $41, %cx*/
-	mov $1, %cx
-	mov $0x10, %ax
+	mov $17, %cx
+	xor %ax, %ax
 	mov %ax, %es
 	movl $0x100000, %edi
 
 load_sector_loop:
+	push %es
+	push %edi
 	mov (lba), %eax
 	inc %eax
 	mov %eax, (lba)
@@ -72,13 +74,22 @@ load_sector_loop:
 	int $0x10
 
 	/* Copy to destination */
+	pop %edi
+	pop %es
 	push %cx
 	push %ds
-	movw $0x200, %cx
+	movw $0x100, %cx
 	mov $0x1000, %ax
 	mov %ax, %ds
 	movw $0x0000, %si
-	rep movsb
+
+copy_sector_loop:
+	movw %ds:(%si), %ax
+	movw %ax, %es:(%edi)
+	inc %edi
+	inc %si
+	loop copy_sector_loop
+
 	pop %ds
 	pop %cx
 
@@ -103,9 +114,31 @@ load_sector_loop:
 	*/
 
 	/* Jump to start of kernel */
-	jmp stop
-	ljmp $0x1000,$0x0000
+	cli
+	mov %cr0, %eax
+	or $1, %al
+	mov %eax, %cr0
+	ljmp $0x8,$start_kernel
 
+.code32
+.align 16
+start_kernel:
+	movw $0x10, %ax
+	movw %ax, %ds
+	movw %ax, %es
+	movw %ax, %fs
+	movw %ax, %gs
+	movw %ax, %ss
+/*
+	movl $0x100000, %eax
+	jmpl *%eax
+	jmpl $0x100000
+*/
+	.byte 0x66, 0xea
+	.long 0x100000
+	.word 0x08
+
+.code16
 stop:
 	hlt
 	jmp stop
@@ -159,8 +192,8 @@ disk_packet:
 	.byte 0x10			/* Size of packet */
 	.byte 0x00			/* reserved (0) */
 sectors:
-	.word 0x0000		/* Number of blocks to transfer */
-	.word 0x0000		/* offset */
-	.word 0x1000		/* segment */
+	.word 0x0001		/* Number of blocks to transfer */
+	.word 0x0000		/* Transfer buffer offset */
+	.word 0x1000		/* Transfer buffer segment */
 lba:
 	.long 0x00000000	/* LBA to load */

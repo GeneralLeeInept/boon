@@ -1,15 +1,17 @@
 # Nuke built-in rules and variables.
 override MAKEFLAGS += -rR
 
+KERNEL_ELF=$(BIN_DIR)/kernel.elf
 KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
 TARGET?=i686-elf
 AS=$(TARGET)-as
 ASFLAGS=
 CC=$(TARGET)-gcc
-CFLAGS=-std=gnu99 -ffreestanding -O2 -Wall -Wextra
+CFLAGS=-std=gnu99 -ffreestanding -Wall -Wextra -gdwarf
 LD=$(TARGET)-gcc
-LDFLAGS=-ffreestanding -O2 -nostdlib -lgcc
+LDFLAGS=-ffreestanding -nostdlib -lgcc
+OBJCOPY=$(TARGET)-objcopy
 
 SRC_DIR=src
 OBJ_DIR=obj
@@ -45,10 +47,15 @@ $(S_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.s
 	@mkdir -p $(@D)
 	@$(AS) -c $< -o $@ $(ASFLAGS)
 
-$(KERNEL_BIN): $(S_OBJS) $(C_OBJS)
+$(KERNEL_ELF): $(S_OBJS) $(C_OBJS)
 	@echo Linking $<...
 	@mkdir -p $(@D)
 	@$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld
+
+$(KERNEL_BIN): $(KERNEL_ELF)
+	@echo Making $<...
+	@mkdir -p $(@D)
+	@$(OBJCOPY) -O binary $< $@
 
 kernel: $(KERNEL_BIN)
 	@echo Built $(KERNEL_BIN).

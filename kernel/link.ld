@@ -1,12 +1,10 @@
-OUTPUT_FORMAT("binary")
 ENTRY(_start)
 SECTIONS
 {
     . = 1M;
 
-    .text.start : { obj/start.o }
-
     .text BLOCK(4K) : ALIGN(4K) {
+        *(.text.start)
         *(.text)
     }
 
