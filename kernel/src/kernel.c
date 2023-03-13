@@ -54,13 +54,13 @@ struct BootInfo
 {
     uint8_t cursorCol;
     uint8_t cursorRow;
-} __atribute__(__packed__);
+} __attribute__((packed));
 
 typedef struct BootInfo BootInfo;
+BootInfo* _bootInfo = 0;
 
 void kmain()
 {
-    BootInfo* _bootInfo = (BootInfo*)0x10000;
     sCursorCol = _bootInfo->cursorCol;
     sCursorRow = _bootInfo->cursorRow;
     kprint("Hello from kernel!\n");
