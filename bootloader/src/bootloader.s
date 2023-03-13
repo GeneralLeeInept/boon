@@ -47,24 +47,47 @@ unreal:
 	pop %ds
 	sti
 
-	mov $0x2f01, %bx
-	mov $0xb8000, %eax
-	mov %bx, (%eax)
-
 	movw $loading_msg, %si
 	call print
 
-	jmp stop
-	
-	/* Loading kernel to 1M, setup unreal mode then load & copy sector by sector */
-	movw $1, sectors
+	/* Loading kernel to 1M, load & copy sector by sector */
 	/*mov $41, %cx*/
+	mov $1, %cx
+	mov $0x10, %ax
+	mov %ax, %es
+	movl $0x100000, %edi
 
-	/* Load kernel to 0x10000 */
+load_sector_loop:
+	mov (lba), %eax
+	inc %eax
+	mov %eax, (lba)
+	
+	/* Load sector to transfer buffer */
 	movb $0x42, %ah
 	movw $disk_packet, %si
 	int $0x13
 	jc disk_error
+
+	mov $0x0e2e, %ax
+	int $0x10
+
+	/* Copy to destination */
+	push %cx
+	push %ds
+	movw $0x200, %cx
+	mov $0x1000, %ax
+	mov %ax, %ds
+	movw $0x0000, %si
+	rep movsb
+	pop %ds
+	pop %cx
+
+	loop load_sector_loop
+
+	mov $0x0e0d, %ax
+	int $0x10
+	mov $0x0e0a, %ax
+	int $0x10
 
 	/*
 	The bootloader has loaded us into 32-bit protected mode on a x86
@@ -80,6 +103,7 @@ unreal:
 	*/
 
 	/* Jump to start of kernel */
+	jmp stop
 	ljmp $0x1000,$0x0000
 
 stop:
@@ -109,13 +133,10 @@ banner_msg:
 	.string "BoonOS Boot Loader v0.0.1\r\n"
 
 unreal_mode_msg:
-	.string "Entering unreal mode...\r\n"
+	.string "Entering unreal mode.\r\n"
 
 loading_msg:
-	.string "Loading BoonOS kernel...\r\n"
-
-unpacking_kernel_msg:
-	.string "Unpacking kernel...\r\n"
+	.string "Loading BoonOS kernel."
 
 disk_error_msg:
 	.string "Disk error.\r\n"
@@ -141,5 +162,5 @@ sectors:
 	.word 0x0000		/* Number of blocks to transfer */
 	.word 0x0000		/* offset */
 	.word 0x1000		/* segment */
-	.word 1				/* low 32-bits of LBA to load */
-	.word 0				/* high 32-bits of LBA to load */
+lba:
+	.long 0x00000000	/* LBA to load */
