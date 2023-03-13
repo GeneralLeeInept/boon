@@ -1,29 +1,28 @@
-ISO=boon.iso
+IMG=boon.img
 
 SUBDIRS := bootloader kernel
 
 BOOTLOADER_BIN = bootloader/bin/bootloader.bin
 KERNEL_BIN = kernel/bin/kernel.bin
-#KERNEL_BIN=bootloader/bin/sector2.bin
 
-all: $(SUBDIRS) iso
+all: $(SUBDIRS) img
 
 clean: $(SUBDIRS)
-	@rm -f $(ISO)
+	@rm -f $(img)
 
 $(SUBDIRS):
 	$(MAKE) -C $@ $(MAKECMDGOALS)
 
-$(ISO): $(SUBDIRS)
+$(IMG): $(SUBDIRS)
 	@echo Generating $@...
-	@dd if=/dev/zero of=$(ISO) bs=512 seek=0 count=18
-	@dd if=$(BOOTLOADER_BIN) of=$(ISO) conv=notrunc bs=512 seek=0 count=1
-	@dd if=$(KERNEL_BIN) of=$(ISO) conv=notrunc bs=512 seek=1
+	@dd if=/dev/zero of=$@ bs=512 seek=0 count=18
+	@dd if=$(BOOTLOADER_BIN) of=$@ conv=notrunc bs=512 seek=0 count=1
+	@dd if=$(KERNEL_BIN) of=$@ conv=notrunc bs=512 seek=1
 
-iso: $(ISO)
-	@echo Built $(ISO).
+img: $(IMG)
+	@echo Built $(IMG).
 
-run: $(ISO)
-	@qemu-system-i386 -drive format=raw,file=$(ISO)
+run: $(IMG)
+	@qemu-system-i386 -drive format=raw,file=$(IMG)
 
-.PHONY: all iso clean run $(SUBDIRS)
+.PHONY: all img clean run $(SUBDIRS)

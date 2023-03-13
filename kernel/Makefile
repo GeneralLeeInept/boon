@@ -5,8 +5,8 @@ KERNEL_ELF=$(BIN_DIR)/kernel.elf
 KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
 TARGET?=i686-elf
-AS=$(TARGET)-as
-ASFLAGS=
+AS=$(TARGET)-gcc
+ASFLAGS=-m32 -gdwarf
 CC=$(TARGET)-gcc
 CFLAGS=-std=gnu99 -ffreestanding -Wall -Wextra -gdwarf
 LD=$(TARGET)-gcc
