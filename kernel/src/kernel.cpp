@@ -58,26 +58,7 @@ struct BootInfo
 
 BootInfo* _bootInfo = 0;
 
-class TestClass
-{
-public:
-    TestClass()
-    {
-        kprint("TestClass constructor\n");
-    }
-
-    ~TestClass()
-    {
-        kprint("TestClass destructor\n");
-    }
-};
-
-TestClass testClass{};
-
-int sbssArray[1024]{};
-
 extern "C" void _init();
-extern "C" void _fini();
 
 extern "C" void KernelInit()
 {
@@ -95,6 +76,7 @@ extern "C" void kmain()
 }
 
 extern "C" void __cxa_finalize(void*);
+extern "C" void _fini();
 
 extern "C" void KernelExit()
 {
