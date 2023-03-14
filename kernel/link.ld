@@ -17,7 +17,9 @@ SECTIONS
     }
 
     .bss BLOCK(4K) : ALIGN(4K) {
+        sbss = .;
         *(COMMON)
         *(.bss)
+        ebss = .;
     }
 }

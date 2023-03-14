@@ -8,7 +8,7 @@ static inline void koutb(uint16_t port, uint8_t value)
     asm volatile("outb %0, %1" : : "a"(value), "Nd"(port) );
 }
 
-void kprint(const char* msg)
+extern "C" void kprint(const char* msg)
 {
     static char* vram = (char*)0xB8000;
 
@@ -59,9 +59,42 @@ struct BootInfo
 typedef struct BootInfo BootInfo;
 BootInfo* _bootInfo = 0;
 
-void kmain()
+class TestClass
 {
+public:
+    TestClass() { kprint("TestClass constructor\n"); }
+    ~TestClass() { kprint("TestClass destructor\n"); }
+};
+
+TestClass testClass{};
+
+int sbssArray[1024]{};
+
+extern "C" void __cxa_pure_virtual()
+{
+    kprint("__cxa_pure_virtual was called!");
+}
+
+extern "C" void kmain()
+{
+    // Setup state
     sCursorCol = _bootInfo->cursorCol;
     sCursorRow = _bootInfo->cursorRow;
+
+    // Todo: heap
+
+    // Todo: Call global constructors
+
     kprint("Hello from kernel!\n");
+
+    if (sbssArray[0] == 0)
+    {
+        kprint("sbssArray[0] == 0\n");
+    }
+    else
+    {
+        kprint("sbssArray[0] != 0\n");
+    }
+
+    // Todo: call global destructors
 }

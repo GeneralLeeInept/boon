@@ -6,9 +6,11 @@ KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
 TARGET?=i686-elf
 AS=$(TARGET)-gcc
-ASFLAGS=-m32 -gdwarf
+ASFLAGS=-gdwarf
 CC=$(TARGET)-gcc
 CFLAGS=-std=gnu99 -ffreestanding -Wall -Wextra -gdwarf
+CPP=$(TARGET)-g++
+CPPFLAGS=-ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -gdwarf
 LD=$(TARGET)-gcc
 LDFLAGS=-ffreestanding -nostdlib -lgcc
 OBJCOPY=$(TARGET)-objcopy
@@ -17,14 +19,13 @@ SRC_DIR=src
 OBJ_DIR=obj
 BIN_DIR=bin
 
-C_SRCS=\
-	$(SRC_DIR)/kernel.c
-	
-S_SRCS=\
-	$(SRC_DIR)/start.s
-
-
+C_SRCS=$(wildcard $(SRC_DIR)/*.c)
 C_OBJS=$(patsubst $(SRC_DIR)/%.c,$(OBJ_DIR)/%.o,$(C_SRCS))
+	
+CPP_SRCS=$(wildcard $(SRC_DIR)/*.cpp)
+CPP_OBJS=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
+
+S_SRCS=$(wildcard $(SRC_DIR)/*.s)
 S_OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(S_SRCS))
 
 .PHONY: all clean kernel run
@@ -42,15 +43,20 @@ $(C_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.c
 	@mkdir -p $(@D)
 	@$(CC) -c $< -o $@ $(CFLAGS)
 
+$(CPP_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.cpp
+	@echo Compiling $<...
+	@mkdir -p $(@D)
+	@$(CPP) -c $< -o $@ $(CPPFLAGS)
+
 $(S_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.s
 	@echo Assemblng $<...
 	@mkdir -p $(@D)
 	@$(AS) -c $< -o $@ $(ASFLAGS)
 
-$(KERNEL_ELF): $(S_OBJS) $(C_OBJS)
+$(KERNEL_ELF): $(S_OBJS) $(C_OBJS) $(CPP_OBJS)
 	@echo Linking $<...
 	@mkdir -p $(@D)
-	@$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld
+	$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld -Wl,-Map,$(@:.elf=.map)
 
 $(KERNEL_BIN): $(KERNEL_ELF)
 	@echo Making $<...

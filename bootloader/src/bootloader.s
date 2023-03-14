@@ -161,7 +161,7 @@ loading_msg:
 disk_error_msg:
 	.string "Disk error.\r\n"
 
-.align 4
+.p2align 2
 gdt_unreal:
 	.quad 0	/* NULL desc */
 	.byte 0xff, 0xff, 0, 0, 0, 0b10011010, 0b00000000, 0 /* codedesc - 64KiB */
@@ -172,6 +172,7 @@ gdtinfo_unreal:
 	.word gdt_unreal_end - gdt_unreal - 1
 	.long gdt_unreal
 
+.p2align 2
 gdt_pm:
 .nulldesc:
 	.quad 0
