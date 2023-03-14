@@ -8,7 +8,7 @@ _start:
     subl $sbss, %eax
     mov %eax, %ecx
     movl $sbss, %edi
-    movl $0xcdcdcdcd, %eax
+    movl $0, %eax
 .clearl_loop:
     cmp $8, %ecx
     jl .clearb_loop
@@ -32,10 +32,14 @@ _start:
 	/* Save bootinfo addr */
 	movl %ebx, _bootInfo
 
+    call KernelInit
+
 	sti
     call kmain
-    leave
 
+    call KernelExit
+
+epilog:
     cli
 1:  hlt
     jmp 1b

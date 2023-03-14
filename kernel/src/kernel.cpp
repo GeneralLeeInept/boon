@@ -56,45 +56,49 @@ struct BootInfo
     uint8_t cursorRow;
 } __attribute__((packed));
 
-typedef struct BootInfo BootInfo;
 BootInfo* _bootInfo = 0;
 
 class TestClass
 {
 public:
-    TestClass() { kprint("TestClass constructor\n"); }
-    ~TestClass() { kprint("TestClass destructor\n"); }
+    TestClass()
+    {
+        kprint("TestClass constructor\n");
+    }
+
+    ~TestClass()
+    {
+        kprint("TestClass destructor\n");
+    }
 };
 
 TestClass testClass{};
 
 int sbssArray[1024]{};
 
-extern "C" void __cxa_pure_virtual()
+extern "C" void _init();
+extern "C" void _fini();
+
+extern "C" void KernelInit()
 {
-    kprint("__cxa_pure_virtual was called!");
+    sCursorCol = _bootInfo->cursorCol;
+    sCursorRow = _bootInfo->cursorRow;
+
+    // TODO: malloc / free support
+
+    _init();
 }
 
 extern "C" void kmain()
 {
-    // Setup state
-    sCursorCol = _bootInfo->cursorCol;
-    sCursorRow = _bootInfo->cursorRow;
-
-    // Todo: heap
-
-    // Todo: Call global constructors
-
     kprint("Hello from kernel!\n");
+}
 
-    if (sbssArray[0] == 0)
-    {
-        kprint("sbssArray[0] == 0\n");
-    }
-    else
-    {
-        kprint("sbssArray[0] != 0\n");
-    }
+extern "C" void __cxa_finalize(void*);
 
-    // Todo: call global destructors
+extern "C" void KernelExit()
+{
+    __cxa_finalize(0);
+    _fini();
+    kprint("Exiting kernel.\n");
 }

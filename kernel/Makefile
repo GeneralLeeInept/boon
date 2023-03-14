@@ -28,6 +28,14 @@ CPP_OBJS=$(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(CPP_SRCS))
 S_SRCS=$(wildcard $(SRC_DIR)/*.s)
 S_OBJS=$(patsubst $(SRC_DIR)/%.s,$(OBJ_DIR)/%.o,$(S_SRCS))
 
+CRTI_OBJ=$(OBJ_DIR)/crti.o
+CRTBEGIN_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtbegin.o)
+CRTEND_OBJ:=$(shell $(CC) $(CFLAGS) -print-file-name=crtend.o)
+CRTN_OBJ=$(OBJ_DIR)/crtn.o
+
+CRT_OBJS=$(CRTI_OBJ) $(CRBEGIN_OBJ) $(CRTEND_OBJ) $(CRTN_OBJ)
+LINK_OBJS=$(CRTI_OBJ) $(CRTBEGIN_OBJ) $(filter-out $(CRTI_OBJ) $(CRTN_OBJ), $(S_OBJS)) $(C_OBJS) $(CPP_OBJS) $(CRTEND_OBJ) $(CRTN_OBJ)
+
 .PHONY: all clean kernel run
 
 all: kernel
@@ -53,7 +61,7 @@ $(S_OBJS): $(OBJ_DIR)%.o: $(SRC_DIR)%.s
 	@mkdir -p $(@D)
 	@$(AS) -c $< -o $@ $(ASFLAGS)
 
-$(KERNEL_ELF): $(S_OBJS) $(C_OBJS) $(CPP_OBJS)
+$(KERNEL_ELF): $(LINK_OBJS)
 	@echo Linking $<...
 	@mkdir -p $(@D)
 	$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld -Wl,-Map,$(@:.elf=.map)
