@@ -56,14 +56,15 @@ struct BootInfo
     uint8_t cursorRow;
 } __attribute__((packed));
 
-BootInfo* _bootInfo = 0;
-
 extern "C" void _init();
 
-extern "C" void KernelInit()
+extern "C" void KernelInit(BootInfo* bootInfo)
 {
-    sCursorCol = _bootInfo->cursorCol;
-    sCursorRow = _bootInfo->cursorRow;
+    sCursorCol = bootInfo->cursorCol;
+    sCursorRow = bootInfo->cursorRow;
+
+    // TODO: PIC/IRQ/IDT...
+    // InitIDT();
 
     // TODO: malloc / free support
 
