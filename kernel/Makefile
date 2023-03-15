@@ -10,7 +10,7 @@ ASFLAGS=-gdwarf
 CC=$(TARGET)-gcc
 CFLAGS=-std=gnu99 -ffreestanding -Wall -Wextra -gdwarf
 CPP=$(TARGET)-g++
-CPPFLAGS=-ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -gdwarf
+CPPFLAGS=-std=c++20 -ffreestanding -Wall -Wextra -fno-exceptions -fno-rtti -gdwarf
 LD=$(TARGET)-gcc
 LDFLAGS=-ffreestanding -nostdlib -lgcc
 OBJCOPY=$(TARGET)-objcopy

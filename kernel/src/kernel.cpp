@@ -1,14 +1,13 @@
+#include "idt.h"
+#include "isr.h"
+#include "port.h"
+
 #include <stdint.h>
 
 static uint8_t sCursorRow;
 static uint8_t sCursorCol;
 
-static inline void koutb(uint16_t port, uint8_t value)
-{
-    asm volatile("outb %0, %1" : : "a"(value), "Nd"(port) );
-}
-
-extern "C" void kprint(const char* msg)
+void kprint(const char* msg)
 {
     static char* vram = (char*)0xB8000;
 
@@ -44,10 +43,19 @@ extern "C" void kprint(const char* msg)
     }
 
     uint16_t cursorPos = sCursorRow * 80 + sCursorCol;
-    koutb(0x3D4, 0x0F);
-    koutb(0x3D5, (uint8_t) (cursorPos & 0xFF));
-    koutb(0x3D4, 0x0E);
-    koutb(0x3D5, (uint8_t) ((cursorPos >> 8) & 0xFF));
+    outb(0x3D4, 0x0F);
+    outb(0x3D5, (uint8_t) (cursorPos & 0xFF));
+    outb(0x3D4, 0x0E);
+    outb(0x3D5, (uint8_t) ((cursorPos >> 8) & 0xFF));
+}
+
+void kprintHex(uint8_t b)
+{
+    const char* hex="0123456789ABCDEF";
+    char buf[3]{};
+    buf[0] = hex[(b & 0xF0) >> 4];
+    buf[1] = hex[b & 0x0F];
+    kprint(buf);
 }
 
 struct BootInfo
@@ -57,15 +65,18 @@ struct BootInfo
 } __attribute__((packed));
 
 extern "C" void _init();
-extern "C" void InitIDT();
+void PIC_Init();
 
 extern "C" void KernelInit(BootInfo* bootInfo)
 {
     sCursorCol = bootInfo->cursorCol;
     sCursorRow = bootInfo->cursorRow;
 
-    InitIDT();
+    isr::init();
+    idt::init();
+    PIC_Init();
     // TODO: PIC/IRQ
+    asm volatile ("sti");
 
     // TODO: malloc / free support
 

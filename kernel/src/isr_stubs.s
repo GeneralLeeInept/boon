@@ -17,8 +17,8 @@
         jmp isr_common
 .endm
 
-.extern ExceptionHandler
-.type ExceptionHandler, @function
+.extern route_isr
+.type route_isr, @function
 
 isr_common:
     pusha
@@ -34,7 +34,7 @@ isr_common:
     mov %ax, %gs
     cld
 
-    call ExceptionHandler
+    call route_isr
 
     pop %gs
     pop %fs
@@ -94,17 +94,15 @@ isr_no_err_stub 45
 isr_no_err_stub 46
 isr_no_err_stub 47
 
-.macro isr_stub_table_entries code=0,num=31
+.altmacro
+.macro isr_stub_table_entries code=0,num=47
     .long _isr\code
     .if \num-\code
-        isr_stub_table_entries "(\code+1)",\num
+        isr_stub_table_entries %code+1,\num
     .endif
 .endm
 
 .section .rodata
 .global _isr_stub_table
 _isr_stub_table:
-/*isr_stub_table_entries*/
-.irp code,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31
-    .long _isr\code
-.endr
+isr_stub_table_entries

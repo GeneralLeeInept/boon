@@ -2,19 +2,17 @@
 
 typedef void (*atexit_func)(void*);
 
-struct atexit_func_entry
+struct atexit_func_entry_t
 {
     atexit_func destructor_func;
     void *obj_ptr;
     void *dso_handle;
 };
 
-typedef struct atexit_func_entry atexit_func_entry_t;
-
 static atexit_func_entry_t s_atexit_funcs[ATEXIT_MAX_FUNCS];
 static unsigned int s_atexit_funcs_count = 0;
 
-int __cxa_atexit(atexit_func destructor_func, void* obj_ptr, void* dso_handle)
+extern "C" int __cxa_atexit(atexit_func destructor_func, void* obj_ptr, void* dso_handle)
 {
     if (s_atexit_funcs_count >= ATEXIT_MAX_FUNCS)
     {
@@ -29,7 +27,7 @@ int __cxa_atexit(atexit_func destructor_func, void* obj_ptr, void* dso_handle)
     return 0;
 }
 
-void __cxa_finalize(void* f)
+extern "C" void __cxa_finalize(void* f)
 {
     if (!f)
     {
@@ -56,7 +54,7 @@ void __cxa_finalize(void* f)
 
 extern void kprint(const char* msg);
 
-void __cxa_pure_virtual()
+extern "C" void __cxa_pure_virtual()
 {
     kprint("__cxa_pure_virtual was called!");
 }
