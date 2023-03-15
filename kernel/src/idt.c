@@ -22,49 +22,49 @@ struct IDTEntry
 
 typedef struct IDTEntry IDTEntry_t;
 
-static IDTEntry_t s_idtTable[256] = { 0 };
+__attribute__((aligned(0x10)))
+static IDTEntry_t s_idt[256] = { 0 };
 
 static IDTR_t s_idtr =
 {
-    .size = sizeof(s_idtTable) - 1,
-    .offset = (uint32_t)s_idtTable
+    .size = sizeof(s_idt) - 1,
+    .offset = (uint32_t)s_idt
 };
 
 extern void kprint(const char* msg);
 
 static void SetIDTEntry(unsigned int index, unsigned int offset, uint16_t selector, uint8_t gateType, uint8_t dpl)
 {
-    IDTEntry_t* entry = &s_idtTable[index];
+    IDTEntry_t* entry = &s_idt[index];
     entry->offsetLo = (uint16_t)(offset & 0xffff);
     entry->offsetHi = (uint16_t)((offset >> 16) & 0xffff);
     entry->selector = selector;
     entry->gateType = gateType;
     entry->dpl = dpl;
     entry->present = 1;
-
-    uint8_t access = 0x80 | ((dpl & 3) << 5) | (gateType & 0xf);
-    uint8_t* check = &(entry->reserved0) + 1;
-    if (access != *check)
-    {
-        kprint("SetIDTEntry: you made a mistake\n");
-    }
 }
 
 extern void DivideByZero();
 
-void ExceptionHandler(int code)
+void ExceptionHandler()
 {
-    if (code == 0)
-    {
-        kprint("Divide by zero\n");
-    }
+    kprint("Exception\n");
+    asm volatile ("hlt");
+
+    // if (code == 0)
+    // {
+    //     kprint("Divide by zero\n");
+    // }
 }
+
+extern unsigned int _isr_stub_table[];
 
 void InitIDT()
 {
-/*     SetIDTEntry(0, 0, 0x10, 0x6, 0x2);
-    SetIDTEntry(1, 0, 0x10, 0x7, 0x3);
-    SetIDTEntry(2, 0, 0x10, 0xF, 0x1); */
-    SetIDTEntry(0, (unsigned int)DivideByZero, 0x08, 0xE, 0x0);
+    for (unsigned int index = 0; index < 32; index++)
+    {
+       SetIDTEntry(index, _isr_stub_table[index], 0x08, 0x0E, 0); 
+    }
+
     asm volatile ("lidt %0" : : "m"(s_idtr));
 }

@@ -57,6 +57,7 @@ struct BootInfo
 } __attribute__((packed));
 
 extern "C" void _init();
+extern "C" void InitIDT();
 
 extern "C" void KernelInit(BootInfo* bootInfo)
 {
@@ -64,7 +65,7 @@ extern "C" void KernelInit(BootInfo* bootInfo)
     sCursorRow = bootInfo->cursorRow;
 
     // TODO: PIC/IRQ/IDT...
-    // InitIDT();
+    InitIDT();
 
     // TODO: malloc / free support
 
@@ -74,6 +75,9 @@ extern "C" void KernelInit(BootInfo* bootInfo)
 extern "C" void kmain()
 {
     kprint("Hello from kernel!\n");
+    int i = 0;
+    int j = 1;
+    //int k = j / i;
 }
 
 extern "C" void __cxa_finalize(void*);
