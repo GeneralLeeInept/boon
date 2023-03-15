@@ -64,8 +64,8 @@ extern "C" void KernelInit(BootInfo* bootInfo)
     sCursorCol = bootInfo->cursorCol;
     sCursorRow = bootInfo->cursorRow;
 
-    // TODO: PIC/IRQ/IDT...
     InitIDT();
+    // TODO: PIC/IRQ
 
     // TODO: malloc / free support
 

@@ -3,7 +3,6 @@
 .section .text.start
 .type _start,@function
 _start:
-    /* Zero BSS - TODO: Is this needed? */
     call ClearBss
 
     /* Setup stack */
@@ -13,7 +12,6 @@ _start:
     call KernelInit
     add $0x4, %esp
 
-	sti
     call kmain
 
     call KernelExit
