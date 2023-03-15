@@ -4,7 +4,7 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        push $\code
+        pushw $\code
         jmp isr_common
 .endm
 
@@ -12,7 +12,7 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        push $0
+        push $0x00
         push $\code
         jmp isr_common
 .endm
@@ -34,9 +34,7 @@ isr_common:
     mov %ax, %gs
     cld
 
-    push %esp
     call ExceptionHandler
-    add $4, %esp
 
     pop %gs
     pop %fs

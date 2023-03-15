@@ -48,7 +48,36 @@ extern void DivideByZero();
 
 void ExceptionHandler()
 {
-    kprint("Exception\n");
+    /* Stack:
+        EBP + 0x3C: error
+        EBP + 0x38: code
+        EBP + 0x34: eax
+        EBP + 0x30: ecx
+        EBP + 0x2C: edx
+        EBP + 0x28: ebx
+        EBP + 0x24: esp
+        EBP + 0x20: ebp
+        EBP + 0x1C: esi
+        EBP + 0x18: edi
+        EBP + 0x14: ds
+        EBP + 0x10: es
+        EBP + 0x0C: fs
+        EBP + 0x08: gs
+        EBP + 0x04: return address
+    */
+    uint8_t error;
+    asm volatile ("mov 0x3C(%%ebp), %0" : "=g" (error));
+
+    uint8_t code;
+    asm volatile ("mov 0x38(%%ebp), %0" : "=g" (code));
+
+    char* msg = "Exception 0x00 (error = 0x00)\n";
+    const char* hex="0123456789ABCDEF";
+    msg[12] = hex[(code & 0xF0) >> 4];
+    msg[13] = hex[code & 0x0F];
+    msg[26] = hex[(error & 0xF0) >> 4];
+    msg[27] = hex[error & 0x0F];
+    kprint(msg);
     asm volatile ("hlt");
 
     // if (code == 0)

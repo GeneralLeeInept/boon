@@ -75,9 +75,10 @@ extern "C" void KernelInit(BootInfo* bootInfo)
 extern "C" void kmain()
 {
     kprint("Hello from kernel!\n");
-    int i = 0;
-    int j = 1;
+    //int i = 0;
+    //int j = 1;
     //int k = j / i;
+    //asm volatile ("int $1");
 }
 
 extern "C" void __cxa_finalize(void*);
