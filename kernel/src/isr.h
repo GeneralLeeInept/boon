@@ -4,8 +4,8 @@
 
 namespace isr
 {
-using handler = void(*)();
+using handler = void(*)(int intNo, int err);
 
 void init();
-void install(uint8_t index, handler handler);
+void installHandler(uint8_t intNo, handler handler);
 }

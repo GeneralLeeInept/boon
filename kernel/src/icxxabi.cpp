@@ -1,5 +1,7 @@
 #define ATEXIT_MAX_FUNCS    128
 
+extern void kprint(const char* msg);
+
 typedef void (*atexit_func)(void*);
 
 struct atexit_func_entry_t
@@ -52,7 +54,6 @@ extern "C" void __cxa_finalize(void* f)
     }
 }
 
-extern void kprint(const char* msg);
 
 extern "C" void __cxa_pure_virtual()
 {

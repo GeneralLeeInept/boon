@@ -1,4 +1,5 @@
 #include "idt.h"
+#include "irq.h"
 #include "isr.h"
 #include "port.h"
 
@@ -65,7 +66,6 @@ struct BootInfo
 } __attribute__((packed));
 
 extern "C" void _init();
-void PIC_Init();
 
 extern "C" void KernelInit(BootInfo* bootInfo)
 {
@@ -74,8 +74,7 @@ extern "C" void KernelInit(BootInfo* bootInfo)
 
     isr::init();
     idt::init();
-    PIC_Init();
-    // TODO: PIC/IRQ
+    irq::init();
     asm volatile ("sti");
 
     // TODO: malloc / free support
@@ -83,13 +82,17 @@ extern "C" void KernelInit(BootInfo* bootInfo)
     _init();
 }
 
+void keyhandler()
+{
+    kprint("#");
+}
+
 extern "C" void kmain()
 {
+    irq::installHandler(0x01, keyhandler);
     kprint("Hello from kernel!\n");
-    //int i = 0;
-    //int j = 1;
-    //int k = j / i;
-    //asm volatile ("int $1");
+
+    for (;;) {}
 }
 
 extern "C" void __cxa_finalize(void*);

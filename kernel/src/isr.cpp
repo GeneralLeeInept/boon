@@ -46,29 +46,27 @@ extern "C" void route_isr()
     */
     uint8_t code;
     asm volatile ("mov 0x38(%%ebp), %0" : "=g" (code));
-    
-    if (code < 32)
-    {
-        uint8_t error;
-        asm volatile ("mov 0x3C(%%ebp), %0" : "=g" (error));
-        exception(code, error);
-    }
-    else if (s_handlers[code])
-    {
-        s_handlers[code]();
-    }
+
+    uint8_t error;
+    asm volatile ("mov 0x3C(%%ebp), %0" : "=g" (error));
+    s_handlers[code](code, error);
 }
 
-void install(uint8_t index, handler handler)
+void installHandler(uint8_t intNo, handler handler)
 {
-   s_handlers[index] = handler; 
+   s_handlers[intNo] = handler; 
 }
 
 void init()
 {
-    for (unsigned int i = 0; i < handlers_count; ++i)
+    for (uint8_t i = 0; i < handlers_count; ++i)
     {
-        idt::install(i, _isr_stub_table[i]);   
+        idt::install(i, _isr_stub_table[i]);
+    }
+
+    for (uint8_t i = 0; i < 32; ++i)
+    {
+        installHandler(i, exception);
     }
 } 
 }

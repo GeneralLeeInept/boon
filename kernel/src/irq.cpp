@@ -1,6 +1,7 @@
-#include "port.h"
+#include "irq.h"
 
-#include <stdint.h>
+#include "isr.h"
+#include "port.h"
 
 // PIC1 I/O ports
 static constexpr uint16_t   PIC1_BASE = 0x20;
@@ -27,18 +28,17 @@ static constexpr uint8_t    ICW4_SFNM       = 0x10;
 
 static constexpr uint8_t    PIC_EOI         = 0x20;
 
+static constexpr uint8_t    IRQ_BASE        = 0x20;
+
 static void PIC_Remap()
 {
-    uint8_t pic1Mask = inb(PIC1_DATA);
-    uint8_t pic2Mask = inb(PIC2_DATA);
-
     outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
-    outb(PIC1_DATA, 0x20);
+    outb(PIC1_DATA, IRQ_BASE);
     io_wait();
-    outb(PIC2_DATA, 0x28);
+    outb(PIC2_DATA, IRQ_BASE + 8);
     io_wait();
     outb(PIC1_DATA, 4);
     io_wait();
@@ -46,11 +46,7 @@ static void PIC_Remap()
     io_wait();
 
     outb(PIC1_DATA, 0xff);
-    // outb(PIC2_DATA, pic2Mask);
     io_wait();
-
-    pic1Mask = inb(PIC1_DATA);
-    pic2Mask = inb(PIC2_DATA);
 }
 
 static void PIC_SendEOI(uint8_t irq)
@@ -63,8 +59,77 @@ static void PIC_SendEOI(uint8_t irq)
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
-void PIC_Init()
+static void PIC_SetMask(uint8_t irq)
+{
+    uint16_t port;
+    uint8_t value;
+ 
+    if(irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+
+    value = inb(port) | (1 << irq);
+    outb(port, value);
+}
+
+static void PIC_ClearMask(uint8_t irq)
+{
+    uint16_t port;
+    uint8_t value;
+ 
+    if(irq < 8)
+    {
+        port = PIC1_DATA;
+    }
+    else
+    {
+        port = PIC2_DATA;
+        irq -= 8;
+    }
+    value = inb(port) & ~(1 << irq);
+    outb(port, value);
+}
+
+namespace irq
+{
+static handler s_handlers[16]{};
+
+static void stub(int intNo, int err)
+{
+    (void)(err);
+
+    if (intNo >= IRQ_BASE && (intNo - IRQ_BASE) < 16)
+    {
+        if (s_handlers[intNo - IRQ_BASE])
+        {
+            s_handlers[intNo - IRQ_BASE]();
+        }
+    }
+
+    PIC_SendEOI(intNo - IRQ_BASE);
+}
+
+void init()
 {
     PIC_Remap();
 
+    for (uint8_t i = 0; i < 16; ++i)
+    {
+        isr::installHandler(i + IRQ_BASE, stub);
+    }
+}
+
+void installHandler(uint8_t irq, handler handler)
+{
+    asm volatile ("cli");
+    s_handlers[irq] = handler;
+    PIC_ClearMask(irq);
+    asm volatile ("sti");
+}
 }
