@@ -4,7 +4,8 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        pushw $\code
+        cli
+        pushl $\code
         jmp isr_common
 .endm
 
@@ -12,8 +13,9 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        push $0x00
-        push $\code
+        cli
+        pushl $0x00
+        pushl $\code
         jmp isr_common
 .endm
 
@@ -43,6 +45,7 @@ isr_common:
     popa
 
     add $8, %esp
+    sti
     iret
 
 isr_no_err_stub 0

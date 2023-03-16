@@ -44,7 +44,7 @@ static void SetIDTEntry(uint8_t index, uint32_t offset, uint16_t selector, uint8
 void install(uint8_t index, uint32_t handler)
 {
     constexpr uint16_t KERNEL_CODE_SELECTOR = 0x08;
-    constexpr uint8_t GATETYPE_INTERRUPT_32 = 0x6;
+    constexpr uint8_t GATETYPE_INTERRUPT_32 = 0xE;
     constexpr uint8_t RING_0_DPL = 0x0;
     SetIDTEntry(index, handler, KERNEL_CODE_SELECTOR, GATETYPE_INTERRUPT_32, RING_0_DPL);
 }

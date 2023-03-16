@@ -7,6 +7,9 @@ _start:
 
     /* Setup stack */
     movl $stack_top, %esp
+    and $-16, %esp
+    push $0
+    push $0
 
     push %ebx
     call KernelInit

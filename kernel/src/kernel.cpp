@@ -72,8 +72,8 @@ extern "C" void KernelInit(BootInfo* bootInfo)
     sCursorCol = bootInfo->cursorCol;
     sCursorRow = bootInfo->cursorRow;
 
-    isr::init();
     idt::init();
+    isr::init();
     irq::init();
     asm volatile ("sti");
 
@@ -85,6 +85,7 @@ extern "C" void KernelInit(BootInfo* bootInfo)
 void keyhandler()
 {
     kprint("#");
+    inb(0x60);
 }
 
 extern "C" void kmain()

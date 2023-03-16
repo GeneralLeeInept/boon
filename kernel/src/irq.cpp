@@ -32,6 +32,9 @@ static constexpr uint8_t    IRQ_BASE        = 0x20;
 
 static void PIC_Remap()
 {
+    uint8_t mask1 = inb(PIC1_DATA);
+    uint8_t mask2 = inb(PIC2_DATA);
+
     outb(PIC1_COMMAND, ICW1_INIT | ICW1_ICW4);
     io_wait();
     outb(PIC2_COMMAND, ICW1_INIT | ICW1_ICW4);
@@ -44,19 +47,13 @@ static void PIC_Remap()
     io_wait();
     outb(PIC2_DATA, 2);
     io_wait();
-
-    outb(PIC1_DATA, 0xff);
+    outb(PIC1_DATA, ICW4_8086);
     io_wait();
-}
+    outb(PIC2_DATA, ICW4_8086);
+    io_wait();
 
-static void PIC_SendEOI(uint8_t irq)
-{
-    if (irq > 7)
-    {
-        outb(PIC2_COMMAND, PIC_EOI);
-    }
-
-    outb(PIC1_COMMAND, PIC_EOI);
+    outb(PIC1_DATA, mask1);
+    outb(PIC2_DATA, mask2);
 }
 
 static void PIC_SetMask(uint8_t irq)
@@ -106,13 +103,20 @@ static void stub(int intNo, int err)
 
     if (intNo >= IRQ_BASE && (intNo - IRQ_BASE) < 16)
     {
-        if (s_handlers[intNo - IRQ_BASE])
+        int irq = intNo - IRQ_BASE;
+
+        if (s_handlers[irq])
         {
-            s_handlers[intNo - IRQ_BASE]();
+            s_handlers[irq]();
         }
     }
 
-    PIC_SendEOI(intNo - IRQ_BASE);
+    if (intNo >= IRQ_BASE+8)
+    {
+        outb(PIC2_COMMAND, PIC_EOI);
+    }
+
+    outb(PIC1_COMMAND, PIC_EOI);
 }
 
 void init()
