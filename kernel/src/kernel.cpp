@@ -1,6 +1,7 @@
 #include "idt.h"
 #include "irq.h"
 #include "isr.h"
+#include "keyboard.h"
 #include "monitor.h"
 #include "port.h"
 
@@ -19,17 +20,12 @@ extern "C" void KernelInit(BootParams* bootParams)
     // TODO: malloc / free support
 
     _init();
-}
 
-void keyhandler()
-{
-    monitor::PrintChar('#');
-    inb(0x60);
+    keyboard::Init();
 }
 
 extern "C" void kmain()
 {
-    irq::InstallHandler(0x01, keyhandler);
     monitor::Print("Hello from kernel!\tThere's a tab behind me\n");
 
     for (;;) {}
