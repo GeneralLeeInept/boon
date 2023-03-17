@@ -45,7 +45,7 @@ _start:
 	call print
 
 	/* Loading kernel to 1M, load & copy sector by sector */
-	mov $17, %cx
+	mov $25, %cx
 	xor %ax, %ax
 	mov %ax, %es
 	movl $0x100000, %edi
@@ -90,6 +90,10 @@ copy_sector_loop:
 	int $0x10
 	mov $0x0e0a, %ax
 	int $0x10
+
+    movb $0x00, %ah
+    movb $0x13, %al
+    int $0x10
 
 	/* Setup bootinfo for the kernel */
 	mov $0x1000, %ax

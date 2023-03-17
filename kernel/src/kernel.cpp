@@ -4,6 +4,7 @@
 #include "keyboard.h"
 #include "monitor.h"
 #include "port.h"
+#include "vga.h"
 
 #include <stdint.h>
 
@@ -26,8 +27,9 @@ extern "C" void KernelInit(BootParams* bootParams)
 
 extern "C" void kmain()
 {
-    monitor::Print("Hello from kernel!\tThere's a tab behind me\n");
-
+    vga::Init();
+    vga::SetModeX();
+    vga::DrawTestPattern();
     for (;;) {}
 }
 

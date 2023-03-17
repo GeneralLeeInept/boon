@@ -15,7 +15,7 @@ $(SUBDIRS):
 
 $(IMG): $(SUBDIRS)
 	@echo Generating $@...
-	@dd if=/dev/zero of=$@ bs=512 seek=0 count=18
+	@dd if=/dev/zero of=$@ bs=512 seek=0 count=26
 	@dd if=$(BOOTLOADER_BIN) of=$@ conv=notrunc bs=512 seek=0 count=1
 	@dd if=$(KERNEL_BIN) of=$@ conv=notrunc bs=512 seek=1
 

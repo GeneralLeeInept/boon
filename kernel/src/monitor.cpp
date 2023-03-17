@@ -104,8 +104,8 @@ void Print(const char* msg)
 void PrintHex(uint8_t byte)
 {
     const char* hex="0123456789ABCDEF";
-    PrintChar((char)((byte & 0xF0) >> 4));
-    PrintChar((char)(byte & 0x0F));
+    PrintChar(hex[(byte & 0xF0) >> 4]);
+    PrintChar(hex[byte & 0x0F]);
 }
 
 void PrintNum(int num)
