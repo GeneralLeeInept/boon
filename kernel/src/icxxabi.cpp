@@ -1,6 +1,6 @@
-#define ATEXIT_MAX_FUNCS    128
+#include "monitor.h"
 
-extern void kprint(const char* msg);
+#define ATEXIT_MAX_FUNCS    128
 
 typedef void (*atexit_func)(void*);
 
@@ -57,5 +57,5 @@ extern "C" void __cxa_finalize(void* f)
 
 extern "C" void __cxa_pure_virtual()
 {
-    kprint("__cxa_pure_virtual was called!");
+    monitor::Print("__cxa_pure_virtual was called!");
 }

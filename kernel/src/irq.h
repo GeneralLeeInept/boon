@@ -4,8 +4,8 @@
 
 namespace irq
 {
-using handler = void(*)();
+using Handler = void(*)();
 
-void init();
-void installHandler(uint8_t irq, handler handler);
+void Init();
+void InstallHandler(uint8_t irq, Handler handler);
 }

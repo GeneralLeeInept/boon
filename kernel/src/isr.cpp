@@ -1,29 +1,27 @@
 #include "isr.h"
 
 #include "idt.h"
-
-void kprint(const char*);
-void kprintHex(uint8_t);
+#include "monitor.h"
 
 namespace isr
 {
 static constexpr int handlers_count = 48;   // 32 exceptions + 16 IRQs
 
-static handler s_handlers[handlers_count];
+static Handler s_handlers[handlers_count];
 extern "C" uint32_t _isr_stub_table[];
 
-void exception(int code, int error)
+void Exception(int code, int error)
 {
-    kprint("Exception 0x");
-    kprintHex(code);
-    kprint(" (error = 0x");
-    kprintHex(error);
-    kprint(")\n");
+    monitor::Print("Exception 0x");
+    monitor::PrintHex(code);
+    monitor::Print(" (error = 0x");
+    monitor::PrintHex(error);
+    monitor::Print(")\n");
 
     asm volatile ("hlt");
 }
 
-extern "C" void route_isr()
+extern "C" void RouteIsr()
 {
     // Call this from the isr stubs
     /* Stack:
@@ -52,21 +50,21 @@ extern "C" void route_isr()
     s_handlers[code](code, error);
 }
 
-void installHandler(uint8_t intNo, handler handler)
+void InstallHandler(uint8_t intNo, Handler handler)
 {
    s_handlers[intNo] = handler; 
 }
 
-void init()
+void Init()
 {
     for (uint8_t i = 0; i < handlers_count; ++i)
     {
-        idt::install(i, _isr_stub_table[i]);
+        idt::Install(i, _isr_stub_table[i]);
     }
 
     for (uint8_t i = 0; i < 32; ++i)
     {
-        installHandler(i, exception);
+        InstallHandler(i, Exception);
     }
 } 
 }

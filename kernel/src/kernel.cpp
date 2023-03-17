@@ -1,80 +1,19 @@
 #include "idt.h"
 #include "irq.h"
 #include "isr.h"
+#include "monitor.h"
 #include "port.h"
 
 #include <stdint.h>
 
-static uint8_t sCursorRow;
-static uint8_t sCursorCol;
-
-void kprint(const char* msg)
-{
-    static char* vram = (char*)0xB8000;
-
-    for (int i = 0; msg && msg[i]; i++)
-    {
-        if (msg[i] == '\r')
-        {
-            sCursorCol = 0;
-            continue;
-        }
-
-        if (msg[i] == '\n')
-        {
-            sCursorCol = 0;
-            sCursorRow++;
-            continue;
-        }
-
-        if (sCursorCol >= 80)
-        {
-            sCursorCol = 0;
-            sCursorRow++;
-        }
-
-        if (sCursorRow >= 25)
-        {
-            return;
-        }
-
-        uint16_t cursorPos = sCursorRow * 80 + sCursorCol;
-        vram[cursorPos * 2] = msg[i];
-        sCursorCol++;
-    }
-
-    uint16_t cursorPos = sCursorRow * 80 + sCursorCol;
-    outb(0x3D4, 0x0F);
-    outb(0x3D5, (uint8_t) (cursorPos & 0xFF));
-    outb(0x3D4, 0x0E);
-    outb(0x3D5, (uint8_t) ((cursorPos >> 8) & 0xFF));
-}
-
-void kprintHex(uint8_t b)
-{
-    const char* hex="0123456789ABCDEF";
-    char buf[3]{};
-    buf[0] = hex[(b & 0xF0) >> 4];
-    buf[1] = hex[b & 0x0F];
-    kprint(buf);
-}
-
-struct BootInfo
-{
-    uint8_t cursorCol;
-    uint8_t cursorRow;
-} __attribute__((packed));
-
 extern "C" void _init();
 
-extern "C" void KernelInit(BootInfo* bootInfo)
+extern "C" void KernelInit(BootParams* bootParams)
 {
-    sCursorCol = bootInfo->cursorCol;
-    sCursorRow = bootInfo->cursorRow;
-
-    idt::init();
-    isr::init();
-    irq::init();
+    monitor::Init(*bootParams);
+    idt::Init();
+    isr::Init();
+    irq::Init();
     asm volatile ("sti");
 
     // TODO: malloc / free support
@@ -84,14 +23,14 @@ extern "C" void KernelInit(BootInfo* bootInfo)
 
 void keyhandler()
 {
-    kprint("#");
+    monitor::PrintChar('#');
     inb(0x60);
 }
 
 extern "C" void kmain()
 {
-    irq::installHandler(0x01, keyhandler);
-    kprint("Hello from kernel!\n");
+    irq::InstallHandler(0x01, keyhandler);
+    monitor::Print("Hello from kernel!\tThere's a tab behind me\n");
 
     for (;;) {}
 }
@@ -103,5 +42,5 @@ extern "C" void KernelExit()
 {
     __cxa_finalize(0);
     _fini();
-    kprint("Exiting kernel.\n");
+    monitor::Print("Exiting kernel.\n");
 }

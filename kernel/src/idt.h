@@ -4,6 +4,6 @@
 
 namespace idt
 {
-void install(uint8_t index, uint32_t handler);
-void init();
+void Init();
+void Install(uint8_t index, uint32_t handler);
 }

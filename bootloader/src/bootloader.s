@@ -21,29 +21,23 @@ _start:
 	movw $banner_msg, %si
 	call print
 
-	/* Enable unreal mode */
-	mov $unreal_mode_msg, %si
-	call print
-
+	/* Enable 4GiB memory addressing */
 	cli
 	push %ds
 	lgdt gdtinfo_unreal
 
+ 	/* Enable protected mode */
 	mov %cr0, %eax
 	or $1, %al
 	mov %eax, %cr0
-	ljmp $0x8,$pmode
 
-.code32
-pmode:
-	mov $0x10, %bx
+	/* Load flatdesc descriptor */
+	mov $(flatdesc - gdt_unreal), %bx
 	mov %bx, %ds
+
+	/* Leave protected mode */
 	and $0xfe, %al
 	mov %eax, %cr0
-	ljmp $0x0,$unreal
-
-.code16
-unreal:
 	pop %ds
 	sti
 
@@ -152,9 +146,6 @@ disk_error:
 banner_msg:
 	.string "BoonOS Boot Loader v0.0.1\r\n"
 
-unreal_mode_msg:
-	.string "Entering unreal mode.\r\n"
-
 loading_msg:
 	.string "Loading BoonOS kernel."
 
@@ -164,7 +155,7 @@ disk_error_msg:
 .p2align 2
 gdt_unreal:
 	.quad 0	/* NULL desc */
-	.byte 0xff, 0xff, 0, 0, 0, 0b10011010, 0b00000000, 0 /* codedesc - 64KiB */
+flatdesc:
 	.byte 0xff, 0xff, 0, 0, 0, 0b10010010, 0b11001111, 0 /* flatdesc - 4GiB */
 gdt_unreal_end:
 

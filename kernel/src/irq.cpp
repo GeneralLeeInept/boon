@@ -3,6 +3,8 @@
 #include "isr.h"
 #include "port.h"
 
+namespace irq
+{
 // PIC1 I/O ports
 static constexpr uint16_t   PIC1_BASE = 0x20;
 static constexpr uint16_t   PIC1_COMMAND = PIC1_BASE;
@@ -93,11 +95,9 @@ static void PIC_ClearMask(uint8_t irq)
     outb(port, value);
 }
 
-namespace irq
-{
-static handler s_handlers[16]{};
+static Handler s_handlers[16]{};
 
-static void stub(int intNo, int err)
+static void Stub(int intNo, int err)
 {
     (void)(err);
 
@@ -119,17 +119,17 @@ static void stub(int intNo, int err)
     outb(PIC1_COMMAND, PIC_EOI);
 }
 
-void init()
+void Init()
 {
     PIC_Remap();
 
     for (uint8_t i = 0; i < 16; ++i)
     {
-        isr::installHandler(i + IRQ_BASE, stub);
+        isr::InstallHandler(i + IRQ_BASE, Stub);
     }
 }
 
-void installHandler(uint8_t irq, handler handler)
+void InstallHandler(uint8_t irq, Handler handler)
 {
     asm volatile ("cli");
     s_handlers[irq] = handler;

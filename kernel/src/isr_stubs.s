@@ -4,7 +4,6 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        cli
         pushl $\code
         jmp isr_common
 .endm
@@ -13,14 +12,13 @@
     .global _isr\code
     .type _isr\code,@function
     _isr\code:
-        cli
         pushl $0x00
         pushl $\code
         jmp isr_common
 .endm
 
-.extern route_isr
-.type route_isr, @function
+.extern RouteIsr
+.type RouteIsr, @function
 
 isr_common:
     pusha
@@ -36,7 +34,7 @@ isr_common:
     mov %ax, %gs
     cld
 
-    call route_isr
+    call RouteIsr
 
     pop %gs
     pop %fs
@@ -45,7 +43,6 @@ isr_common:
     popa
 
     add $8, %esp
-    sti
     iret
 
 isr_no_err_stub 0
@@ -65,11 +62,11 @@ isr_err_stub 13
 isr_err_stub 14
 isr_no_err_stub 15
 isr_no_err_stub 16
-isr_no_err_stub 17
+isr_err_stub 17
 isr_no_err_stub 18
 isr_no_err_stub 19
 isr_no_err_stub 20
-isr_no_err_stub 21
+isr_err_stub 21
 isr_no_err_stub 22
 isr_no_err_stub 23
 isr_no_err_stub 24
