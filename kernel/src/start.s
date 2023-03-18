@@ -22,8 +22,6 @@ forced to be within the first 8 KiB of the kernel file.
 .section .text.start
 .type _start,@function
 _start:
-    call ClearBss
-
     /* Setup stack */
     movl $stack_top, %esp
     and $-16, %esp
@@ -34,6 +32,13 @@ _start:
 	ljmp $0x8,$start_kernel
 
 start_kernel:
+    mov $0x10, %ax
+    mov %ax, %ds
+    mov %ax, %es
+    mov %ax, %fs
+    mov %ax, %gs
+    mov %ax, %ss
+
     push %ebx
     call KernelInit
     add $0x4, %esp
