@@ -12,7 +12,11 @@ clean:
 kernel:
 	@make -C kernel all
 
-iso: kernel boot/grub.cfg
+iso: $(ISO)
+
+$(KERNEL_ELF): kernel
+
+$(ISO): $(KERNEL_ELF) boot/grub.cfg
 	@mkdir -p isodir/boot/grub
 	@cp boot/grub.cfg isodir/boot/grub/
 	@cp kernel/bin/kernel.elf isodir/boot/
