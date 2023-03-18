@@ -29,7 +29,11 @@ _start:
     and $-16, %esp
     push $0
     push $0
+ 
+	lgdt gdtinfo_pm
+	ljmp $0x8,$start_kernel
 
+start_kernel:
     push %ebx
     call KernelInit
     add $0x4, %esp
@@ -71,6 +75,30 @@ ClearBss:
     jmp .clearb_loop
 
 1:  ret
+
+.p2align 2
+gdt_pm:
+.nulldesc:
+	.quad 0
+.codedesc:
+	.word 0xffff		/* Limit bits 0..15 */
+	.word 0x0000		/* Base bits 0..15 */
+	.byte 0x00			/* Base bits 16..23 */
+	.byte 0b10011010	/* Access: P=1, DPL=00, S=1, E=1, DC=0, RW=1, A=0 */
+	.byte 0b11001111	/* Low nibble: Limit bits 16..19; High nibble Flags: G=1, DB=1, L=0, Reserved=0 */
+	.byte 0x00			/* Base bits 24..31 */
+.datadesc:
+	.word 0xffff
+	.word 0x0000
+	.byte 0x00
+	.byte 0b10010010
+	.byte 0b11001111
+	.byte 0x00
+gdt_pm_end:
+
+gdtinfo_pm:
+	.word gdt_pm_end - gdt_pm - 1
+	.long gdt_pm
 
 .section .bss
 .align 16
