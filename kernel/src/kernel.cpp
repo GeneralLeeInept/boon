@@ -28,7 +28,8 @@ extern "C" void KernelInit(BootParams* bootParams)
 extern "C" void kmain()
 {
     vga::Init();
-    vga::SetModeX();
+    vga::SetModeY();
+    //vga::SetMode13H();
     vga::DrawTestPattern();
     for (;;) {}
 }
