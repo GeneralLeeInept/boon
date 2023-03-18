@@ -1,36 +1,24 @@
-IMG=boon.img
+ISO=boon.iso
 
-SUBDIRS := bootloader kernel
-
-BOOTLOADER_BIN = bootloader/bin/bootloader.bin
-KERNEL_BIN = kernel/bin/kernel.bin
+KERNEL_ELF = kernel/bin/kernel.elf
 
 all: iso
 
-clean: $(SUBDIRS)
-	@rm -f $(img)
+clean:
+	@make -C kernel clean
 	@rm -rf isodir
-	@rm -f $(iso)
+	@rm -f $(ISO)
 
-$(SUBDIRS):
-	$(MAKE) -C $@ $(MAKECMDGOALS)
+kernel:
+	@make -C kernel all
 
-$(IMG): $(SUBDIRS)
-	@echo Generating $@...
-	@dd if=/dev/zero of=$@ bs=512 seek=0 count=2880
-	@dd if=$(BOOTLOADER_BIN) of=$@ conv=notrunc bs=512 seek=0 count=1
-	@dd if=$(KERNEL_BIN) of=$@ conv=notrunc bs=512 seek=1
-
-img: $(IMG)
-	@echo Built $(IMG).
-
-iso: kernel
+iso: kernel boot/grub.cfg
 	@mkdir -p isodir/boot/grub
 	@cp boot/grub.cfg isodir/boot/grub/
 	@cp kernel/bin/kernel.elf isodir/boot/
-	@grub-mkrescue -o boon.iso isodir
+	@grub-mkrescue -o $(ISO) isodir
 
-run: $(IMG)
-	@qemu-system-i386 -cdrom boon.iso
+run: iso
+	@qemu-system-i386 -cdrom $(ISO)
 
-.PHONY: all img clean run $(SUBDIRS) iso
+.PHONY: all clean kernel iso run

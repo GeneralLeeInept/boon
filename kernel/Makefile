@@ -2,7 +2,6 @@
 override MAKEFLAGS += -rR
 
 KERNEL_ELF=$(BIN_DIR)/kernel.elf
-KERNEL_BIN=$(BIN_DIR)/kernel.bin
 
 TARGET?=i686-elf
 AS=$(TARGET)-gcc
@@ -66,10 +65,5 @@ $(KERNEL_ELF): $(LINK_OBJS)
 	@mkdir -p $(@D)
 	$(LD) -o $@ $^ $(LDFLAGS) -Tlink.ld -Wl,-Map,$(@:.elf=.map)
 
-$(KERNEL_BIN): $(KERNEL_ELF)
-	@echo Making $<...
-	@mkdir -p $(@D)
-	@$(OBJCOPY) -O binary $< $@
-
-kernel: $(KERNEL_BIN)
-	@echo Built $(KERNEL_BIN).
+kernel: $(KERNEL_ELF)
+	@echo Built $(KERNEL_ELF).
